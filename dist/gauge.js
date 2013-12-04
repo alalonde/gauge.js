@@ -312,14 +312,13 @@
 
     GaugePointer.prototype.value = 0;
 
-    GaugePointer.prototype.options = {
-      strokeWidth: 0.035,
-      length: 0.1,
-      color: "#000000"
-    };
-
     function GaugePointer(gauge) {
       this.gauge = gauge;
+      this.options = {
+        strokeWidth: 0.035,
+        length: 0.1,
+        color: "#000000"
+      };
       this.ctx = this.gauge.ctx;
       this.canvas = this.gauge.canvas;
       GaugePointer.__super__.constructor.call(this, false, false);
@@ -425,10 +424,12 @@
       colorStop: void 0,
       gradientType: 0,
       strokeColor: "#e0e0e0",
-      pointer: {
-        length: 0.8,
-        strokeWidth: 0.035
-      },
+      pointer: [
+        {
+          length: 0.8,
+          strokeWidth: 0.035
+        }
+      ],
       angle: 0.15,
       lineWidth: 0.44,
       fontSize: 40,
@@ -450,7 +451,7 @@
     }
 
     Gauge.prototype.setOptions = function(options) {
-      var gauge, _i, _len, _ref1;
+      var gauge, i, _i, _len, _ref1;
       if (options == null) {
         options = null;
       }
@@ -461,9 +462,9 @@
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       this.render();
       _ref1 = this.gp;
-      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-        gauge = _ref1[_i];
-        gauge.setOptions(this.options.pointer);
+      for (i = _i = 0, _len = _ref1.length; _i < _len; i = ++_i) {
+        gauge = _ref1[i];
+        gauge.setOptions(this.options.pointer[i]);
         gauge.render();
       }
       return this;
@@ -493,13 +494,15 @@
     };
 
     Gauge.prototype.set = function(value) {
-      var i, max_hit, val, _i, _j, _len, _ref1;
+      var gp, i, max_hit, val, _i, _j, _len, _ref1;
       if (!(value instanceof Array)) {
         value = [value];
       }
       if (value.length > this.gp.length) {
         for (i = _i = 0, _ref1 = value.length - this.gp.length; 0 <= _ref1 ? _i < _ref1 : _i > _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
-          this.gp.push(new GaugePointer(this));
+          gp = new GaugePointer(this);
+          gp.setOptions(this.options.pointer[i + 1]);
+          this.gp.push(gp);
         }
       }
       i = 0;
@@ -516,7 +519,7 @@
           angle: this.options.angle
         });
       }
-      this.value = value[value.length - 1];
+      this.value = value[0];
       if (max_hit) {
         if (!this.options.limitMax) {
           return AnimationUpdater.run();

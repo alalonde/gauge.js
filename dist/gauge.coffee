@@ -196,12 +196,12 @@ AnimatedTextFactory =
 class GaugePointer extends ValueUpdater
 	displayedValue: 0
 	value: 0
-	options:
-		strokeWidth: 0.035
-		length: 0.1
-		color: "#000000"
 
 	constructor: (@gauge) ->
+		@options =
+			strokeWidth: 0.035
+			length: 0.1
+			color: "#000000"
 		@ctx = @gauge.ctx
 		@canvas = @gauge.canvas
 		super(false, false)
@@ -278,9 +278,10 @@ class Gauge extends BaseGauge
 		colorStop: undefined
 		gradientType: 0       	# 0 : radial, 1 : linear
 		strokeColor: "#e0e0e0"
-		pointer:
+		pointer: [
 			length: 0.8
 			strokeWidth: 0.035
+		]
 		angle: 0.15
 		lineWidth: 0.44
 		fontSize: 40
@@ -308,8 +309,8 @@ class Gauge extends BaseGauge
 		@radius = @canvas.height * (1 - @paddingBottom) - @lineWidth
 		@ctx.clearRect(0, 0, @canvas.width, @canvas.height)
 		@render()
-		for gauge in @gp
-			gauge.setOptions(@options.pointer)
+		for gauge, i in @gp
+			gauge.setOptions(@options.pointer[i])
 			gauge.render()
 		return @
 
@@ -331,7 +332,9 @@ class Gauge extends BaseGauge
 		# lazy initialization
 		if value.length > @gp.length
 			for i in [0...(value.length - @gp.length)]
-				@gp.push(new GaugePointer(@))
+				gp = new GaugePointer(@)
+				gp.setOptions(@options.pointer[i + 1])
+				@gp.push(gp)
 
 		# get max value and update pointer(s)
 		i = 0
@@ -343,7 +346,7 @@ class Gauge extends BaseGauge
 					max_hit = true
 			@gp[i].value = val
 			@gp[i++].setOptions({maxValue: @maxValue, angle: @options.angle})
-		@value = value[value.length - 1] # TODO: Span maybe?? 
+		@value = value[0]
 
 		if max_hit
 			unless @options.limitMax
